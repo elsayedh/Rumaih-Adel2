@@ -33,6 +33,7 @@
         'views/account_views.xml',
         'views/accounts_hierarchy_template.xml',
         'wizard/accounts_hierarchy_view.xml',
+        'data/account_type_data.xml',
     ],
     "qweb": [
         "static/src/xml/accounts_hierarchy_report_backend.xml",
