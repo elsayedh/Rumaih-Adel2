@@ -9,6 +9,12 @@ class PosPaymentMethod(models.Model):
 
     pos_image = fields.Image("PoS Image", attachment=True)
     
+    receivable_account_id = fields.Many2one('account.account',
+                                            string='Intermediary Account',
+                                            required=True,ondelete='restrict',
+                                            help='Account used as counterpart of the income account in the accounting entry representing the pos sales.')
+
+    
     receivable_account_id2 = fields.Many2one('account.account',
                                             string='Intermediary Account',
                                             required=True,ondelete='restrict',
