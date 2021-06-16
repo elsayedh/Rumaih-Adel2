@@ -12,9 +12,13 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="arch" type="xml">
             <xpath expr="//div[hasclass('oe_title')]" position="before">
                 <field name="pos_image" widget="image" class="oe_avatar" />
-                <field name="receivable_account_id" />
+                
                 
             </xpath>
+			 <xpath expr="//field[@name='receivable_account_id']" position="attributes">
+                    <attribute name="domain">[]</attribute>
+          </xpath>
+			
         </field>
     </record>
 
