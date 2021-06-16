@@ -17,14 +17,6 @@ class PosPaymentMethod(models.Model):
     name = fields.Char(string="Payment Method1", required=True)
 
     
-class PosConfig(models.Model):
-    _inherit = 'pos.config'   
 
-    
-@api.model
-    def assign_payment_journals(self, companies=False):
-        self = self.sudo()
-        if not companies:
-            companies = self.env['res.company'].search([])
          
         
