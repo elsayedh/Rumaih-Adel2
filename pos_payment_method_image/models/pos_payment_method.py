@@ -13,11 +13,8 @@ class PosPaymentMethod(models.Model):
                                             string='Intermediary Account',
                                             required=True,ondelete='restrict',
                                             help='Account used as counterpart of the income account in the accounting entry representing the pos sales.')
+    
+    name = fields.Char(string="Payment Method1", required=True)
 
     
-    receivable_account_id2 = fields.Many2one('account.account',
-                                            string='Intermediary Account',
-                                            required=True,ondelete='restrict',
-                                            help='Account used as counterpart of the income account in the accounting entry representing the pos sales.')
-
-
+    
