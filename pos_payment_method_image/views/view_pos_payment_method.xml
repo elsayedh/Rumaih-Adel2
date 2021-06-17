@@ -23,14 +23,14 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
     </record>
 	
 	
-	 <record id="view_category_property_form" model="ir.ui.view">
-            <field name="name">product.category.property.form.inherit</field>
+	 <record id="view_category_property_pos_form" model="ir.ui.view">
+            <field name="name">product.category.property.form..posinherit</field>
             <field name="model">product.category</field>
             <field name="inherit_id" ref="product.product_category_form_view"/>
             <field name="arch" type="xml">
 			
 		 <xpath expr="//field[@name='property_account_income_categ_id']" position="before">
-                            <field name="account_income_pos_categ_id" domain="[('internal_type','=','other'),('deprecated', '=', False)]"/>
+            <field name="account_income_pos_categ_id" domain="[('internal_type','=','other'),('deprecated', '=', False)]"/>
           </xpath>
 		  
                 
