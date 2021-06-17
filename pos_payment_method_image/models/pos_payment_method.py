@@ -16,7 +16,44 @@ class PosPaymentMethod(models.Model):
     
     name = fields.Char(string="Payment Method1", required=True)
 
-    
 
+class ProductCategorypos(models.Model):
+    _inherit = "product.category"
+
+    account_income_pos_categ_id = fields.Many2one('account.account', company_dependent=True,
+        string="Income Account POS",
+        domain="['&', ('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+        help="This account will be used when validating a customer invoice.")
+        
+        
+class PossessionMethod(models.Model):
+    _inherit = "pos.session"
+    
+    
+    def _prepare_line(self, order_line):
+        """ Derive from order_line the order date, income account, amount and taxes information.
+        product.with_context(force_company=order_line.company_id.id).property_account_income_id or
+        These information will be used in accumulating the amounts for sales and tax lines.
+        """
+        def get_income_account(order_line):
+            product = order_line.product_id
+            income_account =  product.categ_id.with_context(force_company=order_line.company_id.id).account_income_pos_categ_id
+            if not income_account:
+                raise UserError(_('Please define income account for this product: "%s" (id:%d).')
+                                % (product.name, product.id))
+            return order_line.order_id.fiscal_position_id.map_account(income_account)
+
+        tax_ids = order_line.tax_ids_after_fiscal_position\
+                    .filtered(lambda t: t.company_id.id == order_line.order_id.company_id.id)
+        price = order_line.price_unit * (1 - (order_line.discount or 0.0) / 100.0)
+        taxes = tax_ids.compute_all(price_unit=price, quantity=order_line.qty, currency=self.currency_id, is_refund=order_line.qty<0).get('taxes', [])
+        date_order = order_line.order_id.date_order
+        taxes = [{'date_order': date_order, **tax} for tax in taxes]
+        return {
+            'date_order': order_line.order_id.date_order,
+            'income_account_id': get_income_account(order_line).id,
+            'amount': order_line.price_subtotal,
+            'taxes': taxes,
+        }
          
         
