@@ -8,6 +8,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 from datetime import datetime
+from odoo.exceptions import UserError
 
 journal_type_dict = {
             ('outgoing', 'customer'): ['out_invoice'],
@@ -55,6 +56,39 @@ class stock_picking(models.Model):
 
 class account_move(models.Model):
     _inherit = 'account.move'
+
+    def action_view_landed_costs2(self):
+        self.ensure_one()
+        print("")
+        if self.stock_picking_ids:
+            print (self.stock_picking_ids.ids)
+            # for rec in  self.stock_picking_ids:
+            # print(rec.invoice_ids)
+            print(self.stock_picking_ids.ids)
+            mylandcost_account = self.env['stock.landed.cost'].search([('picking_ids','in',self.stock_picking_ids.ids)],limit=1)
+            print(mylandcost_account)
+            if mylandcost_account:
+
+                action = self.env.ref('stock_landed_costs.action_stock_landed_cost').read()[0]
+                domain = [('id', '=', mylandcost_account.id)]
+                context = dict(self.env.context, default_vendor_bill_id=mylandcost_account.vendor_bill_id)
+                views = [(self.env.ref('stock_landed_costs.view_stock_landed_cost_tree2').id, 'tree'), (False, 'form'),
+                         (False, 'kanban')]
+
+                return dict(action, domain=domain, context=context, views=views)
+
+            action = self.env.ref('stock_landed_costs.action_stock_landed_cost').read()[0]
+            domain = [('id', 'in', self.landed_costs_ids.ids)]
+            context = dict(self.env.context, default_vendor_bill_id=self.id)
+            views = [(self.env.ref('stock_landed_costs.view_stock_landed_cost_tree2').id, 'tree'), (False, 'form'),
+                     (False, 'kanban')]
+
+            return dict(action, domain=domain, context=context, views=views)
+
+
+
+
+    # invoice_ids_count = fields.Integer(string="Invoices", store=True)
 
     def _prepare_invoice_line_from_po_line(self, line):
         data = super(account_move, self)._prepare_invoice_line_from_po_line(line)

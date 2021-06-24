@@ -24,6 +24,7 @@
     'data': [
         'security/ir.model.access.csv',
         'views/stock_view.xml',
+        'views/account_view.xml',
     ],
     'demo': [],
     'images': ['static/description/main_screenshot.png'],
