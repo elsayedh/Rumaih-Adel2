@@ -8,7 +8,7 @@
       <field name="arch" type="xml">
 
         <field name="communication" position="after">
-          <field name="choose_po" options="{'no_open': True, 'no_create': True}"/>
+          <field name="choose_po" />
         </field>
 
       </field>

@@ -10,5 +10,12 @@ class CustomAccountPaymentPo(models.Model):
 
     #
 
-    choose_po = fields.Many2one(comodel_name="purchase.order", string="Choose Po", required=True,
-                                domain=[('state', '=', 'purchase')])
+    choose_po = fields.Many2one("purchase.order", string="Choose Po", tracking=True,
+                                domain=[('state', '=', 'purchase')] )
+
+
+class CustomAccountPaymentPopurchase(models.Model):
+    _inherit = 'purchase.order'
+    _description = 'account purhase Custom'
+
+    child_ids = fields.One2many('account.payment', 'choose_po', 'Child Accounts')
