@@ -16,7 +16,7 @@
         * Link invoice to Sale/Purchase order respectively.
     """,
     'summary': """Invoice from delivery order | Invoice from incoming shipment | customer invoice from delivery order | vendor bill from incoming shipment  bill from receipt | generate invoice from picking | generate bill from picking.""",
-    'depends': ['base', 'sale_management', 'stock', 'purchase'],
+    'depends': ['base', 'sale_management', 'stock', 'purchase','account'],
     'price': 25,
     'currency': 'EUR',
     'license': 'OPL-1',
@@ -25,6 +25,7 @@
         'security/ir.model.access.csv',
         'views/stock_view.xml',
         'views/account_view.xml',
+        'views/account_payment_po.xml',
     ],
     'demo': [],
     'images': ['static/description/main_screenshot.png'],
