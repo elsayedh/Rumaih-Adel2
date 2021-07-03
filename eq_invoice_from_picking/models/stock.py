@@ -7,7 +7,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
-from datetime import datetime
+from datetime import datetime , timedelta, date
 from odoo.exceptions import UserError
 
 journal_type_dict = {
@@ -105,12 +105,31 @@ class wizard_stock_picking_invoice(models.TransientModel):
     _name = 'wizard.stock.picking.invoice'
     _description = "Wizard Stock Picking Description"
 
-    journal_id = fields.Many2one('account.journal', string="Journal", required=True)
+    @api.model
+    def _get_journal(self):
+        picking_ids = self.env['stock.picking'].sudo().browse(self.env.context.get('active_ids'))
+        ir_config = self.env['ir.config_parameter'].sudo()
+        app_property_stock_journal = ir_config.get_param('eq_invoice_from_picking.property_stock_journal', )
+        accred_journal_id = int(app_property_stock_journal)
+        if  picking_ids:
+            mypurchase = self.env['purchase.order'].sudo().search([('name', '=', picking_ids.origin)], limit=1)
+            if mypurchase:
+                print("expense", mypurchase.account_expense_categ_id)
+                if mypurchase.account_expense_categ_id:
+                    acc_src = mypurchase.account_expense_categ_id.id
+                    journal_id = accred_journal_id
+                    return journal_id
+                else:
+                    myjournal = self.env['account.journal'].sudo().search([('type','=','purchase')],limit=1)
+                    return myjournal.id
+        return False
+
+    journal_id = fields.Many2one('account.journal', string="Journal", required=True , default=_get_journal)
     invoice_type = fields.Selection([('out_invoice', 'Create Customer Invoice'),
                                      ('out_refund', 'Create Customer Credit Note'),
                                      ('in_invoice', 'Create Vendor Bill'),
                                      ('in_refund', 'Create Vendor Refund')], 'Invoice Type', readonly=True)
-    invoice_date = fields.Date(string="Invoice Date")
+    invoice_date = fields.Date(string="Invoice Date",default=lambda self: datetime.now())
     group_by_partner = fields.Boolean(string="Group By Partner")
 
     @api.model
@@ -174,6 +193,7 @@ class wizard_stock_picking_invoice(models.TransientModel):
                 key = (picking.partner_id.id, picking.company_id.id, user_id)
                 invoice_vals = picking.with_context(journal_id=self.journal_id.id, invoice_date=self.invoice_date, invoice_type=self.invoice_type, user_id=user_id)._prepare_invoice()
                 if key not in invoice_lst:
+                    print("invoice_vals",invoice_vals)
                     invoice_id = self.env['account.move'].with_context(default_type=self.invoice_type).create(invoice_vals)
                     invoice_lst[key] = invoice_id
                     new_invoices += invoice_id
@@ -189,6 +209,7 @@ class wizard_stock_picking_invoice(models.TransientModel):
                     if update_inv_data:
                         invoice_id.write(update_inv_data)
                 if invoice_id:
+                    print("invoice_id" , invoice_id)
                     inv_line_vals = []
                     for each in picking.move_lines:
                         if each.sale_line_id and each.sale_line_id.qty_to_invoice > 0:
@@ -207,10 +228,18 @@ class wizard_stock_picking_invoice(models.TransientModel):
                             if qty > 0:
                                 invoice_id.write({'purchase_id': each.purchase_line_id.order_id.id})
                                 prepare_invoice_line_vals = each.purchase_line_id._prepare_account_move_line(invoice_id)
+                                print("prepare_invoice_line_vals",prepare_invoice_line_vals)
                                 prepare_invoice_line_vals.update({'quantity': qty})
+                                mypurchase = self.env['purchase.order'].sudo().search(
+                                    [('name', '=', picking_ids.origin)], limit=1)
+                                if mypurchase:
+                                    print("expense", mypurchase.account_expense_categ_id)
+                                    if mypurchase.account_expense_categ_id:
+                                        prepare_invoice_line_vals.update({'account_id': mypurchase.account_expense_categ_id.id})
                                 inv_line_vals.append((0, 0, prepare_invoice_line_vals))
                     if inv_line_vals:
                         invoice_id.write({'invoice_line_ids': inv_line_vals})
+
                     picking.write({'invoice_ids': [(4, invoice_id.id)],
                     })
         for eachinv in new_invoices:
