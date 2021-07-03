@@ -7,9 +7,5 @@
 
 from . import stock
 from . import account_payment_po
-from . import partner
-from . import res_config_settings
-from . import purchase
-from . import stock_move
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
